@@ -1,5 +1,5 @@
 # Text-de-shuffling
-Using transformers to rearrange incoherent sentences to meaningful sentences . 
+This is a natural language processing project on using transformers to rearrange incoherent into sentences to meaningful sentences . It is an exercise in text generation
 
 Examples :
 ![Screenshot (754)](https://user-images.githubusercontent.com/64759748/178611183-760ba1cf-aa19-4b4f-b136-15d8e46e4dcd.png)
