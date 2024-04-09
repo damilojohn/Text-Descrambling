@@ -3,11 +3,11 @@ from modal import Stub, Image, Secret, Volume, enter, method
 from pathlib import Path
 
 gpt2_image = (
-    Image.debian_slim()
+    Image.debian_slim(python_version='3.10')
     .pip_install(
-        'accelerate==0.18.0',
-        "datasets == 2.10.1",
         'transformers[torch]',
+        'accelerate',
+        "datasets",
         'wandb'
     )
 )
@@ -52,7 +52,7 @@ def _prepare_train():
 
     wandb.login()
     config = {
-        'model name': 'GPT2-medium',
+        'model name': 'GPT2-medium-modal',
         'learning_rate': '3e-5',
         'architecture': 'decoder-only',
         'context_length': 'not set',
@@ -70,7 +70,7 @@ def _prepare_train():
     torch.manual_seed(seed_val)
     torch.cuda.manual_seed_all(seed_val)
 
-    device = 'cuda' if torch.cuda.is_avalilable() else 'cpu'
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     tokenizer = GPT2Tokenizer.from_pretrained(BASE_MODEL)
     tokenizer.pad_token = tokenizer.eos_token
@@ -80,7 +80,7 @@ def _prepare_train():
 
     print('the max model length for this token is {}'.format(tokenizer.model_max_length))
     print(
-        f'''this model has 
+        f'''this model has
         {sum([p.numel() for p in model.parameters()])//10**6:.1f}
         M parameters'''
         )
@@ -115,7 +115,7 @@ def _prepare_train():
     processed_data.set_format(type='torch', columns=['input_ids',
                                                      'attention_mask', 'labels'
                                                      ])
-    batch_size = 128
+    batch_size = 32
 # Training arguments and Trainer
     training_args = TrainingArguments(
         per_device_train_batch_size=batch_size,
@@ -138,7 +138,7 @@ def _prepare_train():
         model=model,
         args=training_args,
         train_dataset=processed_data['train'],
-        eval_dataset=processed_data['val'],
+        eval_dataset=processed_data['validation'],
         )
     trainer.train()
     wandb.finish()
@@ -162,7 +162,7 @@ def _prepare_train():
 @stub.function(
     gpu='A10g',
     timeout=60*60*2,
-    secret=Secret.from_name('wandb-api'),
+    secrets=[Secret.from_name('wandb-api')],
     volumes={VOL_MOUNT_PATH: output_vol},
     _allow_background_volume_commits=True,)
 def finetune():
@@ -172,7 +172,7 @@ def finetune():
 
 @stub.cls(volumes={VOL_MOUNT_PATH: output_vol})
 class Descrambler:
-    @enter
+    @enter()
     def load_model(self):
         from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
@@ -185,11 +185,11 @@ class Descrambler:
             cache_dir=VOL_MOUNT_PATH / "model/"
         )
 
-    @method
+    @method()
     def generate(self, input):
         input = [f"wrong sentence: {sentence} correct sentence:"
                  for sentence in input]
-        input_tokens = self.tokenizer(input)
+        input_tokens = self.tokenizer(input, return_tensors='pt')
         out = self.model.generate(**input_tokens,
                                   max_new_tokens=60,
                                   do_sample=True,
@@ -200,6 +200,7 @@ class Descrambler:
 
 @stub.local_entrypoint()
 def main():
+    finetune.remote()
     sentences = [
         'the which wiring flow. propose to diagram, method network a reflects signal We visualize',
         'the interaction networks. the gap Finally, analyze chemical the junction between synapse and we',
