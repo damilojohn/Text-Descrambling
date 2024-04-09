@@ -157,6 +157,7 @@ def _prepare_train():
     #     trainer.save_model()
     #     raise
 
+
 @stub.function(
     gpu='A10g',
     timeout=60*60*2,
@@ -166,46 +167,3 @@ def _prepare_train():
 def finetune():
     print('started training')
     _prepare_train()
-
-
-@stub.cls(volumes={VOL_MOUNT_PATH: output_vol})
-class Descrambler:
-    @enter()
-    def load_model(self):
-        from transformers import GPT2LMHeadModel, GPT2Tokenizer
-
-        self.tokenizer = GPT2Tokenizer.from_pretrained(
-            BASE_MODEL,
-            cache_dir=VOL_MOUNT_PATH / "tokenizer/"
-        )
-        self.model = GPT2LMHeadModel.from_pretrained(
-            BASE_MODEL,
-            cache_dir=VOL_MOUNT_PATH / "model/"
-        )
-
-    @method()
-    def generate(self, input):
-        input = [f"wrong sentence: {sentence} correct sentence:"
-                 for sentence in input]
-        input_tokens = self.tokenizer(input, return_tensors='pt')
-        out = self.model.generate(**input_tokens,
-                                  max_new_tokens=60,
-                                  do_sample=True,
-                                  num_beams=5)
-        out = self.tokenizer.decode(out[0])
-        return (f'model input {input} model output:{out}')
-
-
-@stub.local_entrypoint()
-def main():
-    finetune.remote()
-    sentences = [
-        'the which wiring flow. propose to diagram, method network a reflects signal We visualize',
-        'the interaction networks. the gap Finally, analyze chemical the junction between synapse and we',
-        'the process The pseudorandom number illustrated in is Mathematica. generator using',
-        'in the of structure resulted decrease mutual signal in information. Introducing correlations input-output',
-        'statistical estimators functionals. of various of consistent We investigate existence the bounded-memory',
-        'rather negative sense. the question This in strong a is in resolved']
-    model = Descrambler()
-    response = model.generate.remote(sentences)
-    print(response)
