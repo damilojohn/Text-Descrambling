@@ -48,7 +48,7 @@ def _prepare_train():
     import numpy as np
     import wandb
 
-    restarts = track_restarts(restart_tracker_dict)
+    # restarts = track_restarts(restart_tracker_dict)
 
     wandb.login()
     config = {
