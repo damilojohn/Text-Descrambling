@@ -76,7 +76,8 @@ def main():
         # 'in the of structure resulted decrease mutual signal in information. Introducing correlations input-output',
         # 'statistical estimators functionals. of various of consistent We investigate existence the bounded-memory',
         # 'rather negative sense. the question This in strong a is in resolved'
-        'method Therefore, we in propose that their parameters. environments to simulate causal a relationships offer',
+        ('method Therefore, we in propose that their parameters.' 
+         'environments to simulate causal a relationships offer'),
         'image a we In paper, scene. nighttime single address in haze problem the removal this',
         'in noticeable are of different night light and sources These glow scenes. shapes introduce',
         'of proposed to is the function a function In combine loss loss new classification. addition,',
