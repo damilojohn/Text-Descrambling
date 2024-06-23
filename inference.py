@@ -5,6 +5,7 @@ from modal import (Volume,
                    method,
                    Secret)
 from pathlib import Path
+import argparse
 
 
 gpt2_image = (
@@ -21,14 +22,14 @@ gpt2_image = (
 VOL_MOUNT_PATH = Path("/vol")
 BASE_MODEL = 'openai-community/gpt2-medium'
 
-stub = Stub('serving-gpt2', image=gpt2_image)
+stub = Stub('serving text descrambler', image=gpt2_image)
 volume = Volume.from_name('finetune-text-descrambler')
 
 
 @stub.cls(
     volumes={VOL_MOUNT_PATH: volume},
     secrets=[Secret.from_name('hf-secret')],
-    gpu='A10G')
+    gpu='T4')
 class Descrambler:
     @enter()
     def load_model(self):
@@ -63,13 +64,12 @@ class Descrambler:
         for i, out in enumerate(out):
             decoded_output = self.tokenizer.decode(out,
                                                    skip_special_tokens=True)
-            print(f"Input: {input[i]}")
             print(f"Output: {decoded_output}")
 
 
 @stub.local_entrypoint()
 def main():
-    sentences = [
+    example_sentences = [
         # 'the which wiring flow. propose to diagram, method network a reflects signal We visualize',
         # 'the interaction networks. the gap Finally, analyze chemical the junction between synapse and we',
         # 'the process The pseudorandom number illustrated in is Mathematica. generator using',
@@ -91,6 +91,13 @@ def main():
         'differential low-power The comparators. fully uses ADC clocked',
 
         ]
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument(
+    #     'input_sentence',
+    #     type=str,
+    #     help='sentence to be descrambled'
+    # )
+    # args = parser.parse_args()
     model = Descrambler()
-    response = model.generate.remote(sentences)
+    response = model.generate.remote(example_sentences)
     print(response)
