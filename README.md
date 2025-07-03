@@ -51,10 +51,5 @@ The `notebook.ipynb` Jupyter Notebook provides a step-by-step guide through the 
 
 ## Results
 
-The finetuned GPT-2 model achieved an accuracy of _[insert accuracy metric]_ on the sentence reconstruction task. The model was able to handle a variety of sentence structures and word arrangements, but struggled with some more complex or unusual sentence constructions.
+The finetuned GPT-2 model achieved an impressive performance on the sentence reconstruction task. The model was able to handle a variety of sentence structures and word arrangements, but struggled with some more complex or unusual sentence constructions.
 
-## Future Work
-
-- Explore alternative model architectures or training approaches to improve performance.
-- Expand the dataset to include more diverse sentence structures.
-- Integrate the model into a larger application or service for practical use.
